@@ -23,7 +23,6 @@ class HTMLBuilder {
     /**
      * The symbol uses to separate different attributes.
      * @type {string}
-     * @constanst
      * @private
      */
     private SYMBOL_BETWEEN_ATTRIBUTES: string = ";";
@@ -34,6 +33,21 @@ class HTMLBuilder {
      */
     public constructor(parent?: HTMLElement) {
         this.parent = parent || document.body;
+    }
+
+    /**
+     * Changes the symbol that separates the attributes inside brackets.
+     * 
+     * @param {string} symbol The new symbol.
+     * @public
+     * @example `
+     *      changeSymbolBetweenAttributes('/')
+     *      => [attr1=true / attr2=voila]
+     * `
+     */
+    public changeSymbolBetweenAttributes(symbol: string): void
+    {
+        this.SYMBOL_BETWEEN_ATTRIBUTES = symbol;
     }
 
     /**

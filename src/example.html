@@ -48,8 +48,9 @@
     <script src="HTMLBuilder.js"></script>
     <script>
         var builder = new HTMLBuilder(document.querySelector("#container"));
+        builder.changeSymbolBetweenAttributes('/');
         builder.generate(`
-            button(Say (Hello) !)[type=button; data-fakedata=[no-idea1, no-idea2]]
+            button(Say (Hello) !)[type=button / data-fakedata=[no-idea1, no-idea2]]
         `);
     </script>
 </body>

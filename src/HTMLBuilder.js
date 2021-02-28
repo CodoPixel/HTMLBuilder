@@ -19,11 +19,23 @@ class HTMLBuilder {
         /**
          * The symbol uses to separate different attributes.
          * @type {string}
-         * @constanst
          * @private
          */
         this.SYMBOL_BETWEEN_ATTRIBUTES = ";";
         this.parent = parent || document.body;
+    }
+    /**
+     * Changes the symbol that separates the attributes inside brackets.
+     *
+     * @param {string} symbol The new symbol.
+     * @public
+     * @example `
+     *      changeSymbolBetweenAttributes('/')
+     *      => [attr1=true / attr2=voila]
+     * `
+     */
+    changeSymbolBetweenAttributes(symbol) {
+        this.SYMBOL_BETWEEN_ATTRIBUTES = symbol;
     }
     /**
      * Gets the indentation level of a line.
