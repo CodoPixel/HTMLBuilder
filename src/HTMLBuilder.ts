@@ -1,5 +1,12 @@
 // FRENCH="àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ"
 
+interface Listener {
+    name: string,
+    type: string,
+    callback: Function,
+    options: any
+}
+
 /**
  * A tool that allows you to generate HTML content from a template in an optimised way.
  * @class
@@ -11,7 +18,7 @@ class HTMLBuilder {
      * @constant
      * @private
      */
-    private REGEX: RegExp = /(\w{1,})((?:\.[\w-]*){0,}){0,}(#[\w-]{0,}){0,}(?:\((.*)\)){0,1}(?:\[(.*)\]){0,1}/mi;
+    private REGEX: RegExp = /(\w{1,})((?:\.[\w-]*){0,}){0,}(#[\w-]{0,}){0,1}(?:\((.*)\)){0,1}(?:\[(.*)\]){0,1}(?:\@([\w;]*)){0,}/;
     
     /**
      * The parent element in which to put the generated elements from the template.
@@ -28,11 +35,32 @@ class HTMLBuilder {
     private SYMBOL_BETWEEN_ATTRIBUTES: string = ";";
 
     /**
+     * @private 
+     */
+    private EVENTS: Listener[] = [];
+
+    /**
      * @constructs HTMLBuilder
      * @param {HTMLElement} parent The parent in which to put the generated elements.
      */
     public constructor(parent?: HTMLElement) {
         this.parent = parent || document.body;
+    }
+
+    /**
+     * Registers an event to use in a template. Those events are available for all the templates.
+     * 
+     * @param {{name: string, type: string, callback: Function, options: any}} event The event to register. 
+     */
+    public bindEvent(event: Listener): void
+    {
+        if (!event.name) throw new Error("bindEvent(): cannot bind an event without a name.");
+        if (!event.type) throw new Error("bindEvent(): cannot bind an event without a precise type.");
+        if (!event.callback) throw new Error("bindEvent(): cannot bind an event without a callback function.");
+        if (event.name.startsWith("on")) {
+            event.name = event.name.replace("on", "");
+        }
+        this.EVENTS.push(event);
     }
 
     /**
@@ -102,6 +130,23 @@ class HTMLBuilder {
     }
 
     /**
+     * Gets an event according to its name.
+     * 
+     * @param name The name of the event we are looking for.
+     * @return {{name: string, type: string, callback: Function, options: any}} The event we are looking for.
+     * @private
+     */
+    private _searchForEvent(name: string): Listener
+    {
+        for (var event of this.EVENTS) {
+            if (name === event.name) {
+                return event;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Generates a new HTML element from a line (you must use a specific syntax & order).
      * 
      * @param {string} line The line to parse.
@@ -122,6 +167,7 @@ class HTMLBuilder {
         var id: string = matches[3] ? matches[3].replace("#", "") : null;
         var content: string = matches[4] || null;
         var attributes: string[] = matches[5] ? matches[5].split(this.SYMBOL_BETWEEN_ATTRIBUTES) : null;
+        var events: string[] = matches[6] ? (matches[6].split(";") as string[]).filter(v => v !== "") : null;
 
         if (!tagname) {
             console.error('HTMLBuilder: unable to parse a line: "' + line + '"');
@@ -158,6 +204,21 @@ class HTMLBuilder {
 
         if (id) element.id = id;
         if (content) element.appendChild(document.createTextNode(this._decodeHTMLEntities(content)));
+
+        if (events) {
+            for (var name of events) {
+                if (/\d/.test(name[0])) {
+                    console.error("HTMLBuilder: invalid syntax for event name '" + name + "'");
+                    continue;
+                }
+
+                var event: Listener = this._searchForEvent(name);
+                if (event) {
+                    // @ts-ignore
+                    element.addEventListener(event.type, event.callback, event.options);
+                }
+            }
+        }
 
         return element;
     }
@@ -236,7 +297,8 @@ class HTMLBuilder {
      * @param {string} template The template of your HTML structure.
      * @public
      */
-    public generate(template: string) {
+    public generate(template: string): void
+    {
         if (template.trim().length === 0) return;
 
         // We read all the lines in order to identify the main HTML elements,

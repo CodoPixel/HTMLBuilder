@@ -15,14 +15,35 @@ class HTMLBuilder {
          * @constant
          * @private
          */
-        this.REGEX = /(\w{1,})((?:\.[\w-]*){0,}){0,}(#[\w-]{0,}){0,}(?:\((.*)\)){0,1}(?:\[(.*)\]){0,1}/mi;
+        this.REGEX = /(\w{1,})((?:\.[\w-]*){0,}){0,}(#[\w-]{0,}){0,1}(?:\((.*)\)){0,1}(?:\[(.*)\]){0,1}(?:\@([\w;]*)){0,}/;
         /**
          * The symbol uses to separate different attributes.
          * @type {string}
          * @private
          */
         this.SYMBOL_BETWEEN_ATTRIBUTES = ";";
+        /**
+         * @private
+         */
+        this.EVENTS = [];
         this.parent = parent || document.body;
+    }
+    /**
+     * Registers an event to use in a template. Those events are available for all the templates.
+     *
+     * @param {{name: string, type: string, callback: Function, options: any}} event The event to register.
+     */
+    bindEvent(event) {
+        if (!event.name)
+            throw new Error("bindEvent(): cannot bind an event without a name.");
+        if (!event.type)
+            throw new Error("bindEvent(): cannot bind an event without a precise type.");
+        if (!event.callback)
+            throw new Error("bindEvent(): cannot bind an event without a callback function.");
+        if (event.name.startsWith("on")) {
+            event.name = event.name.replace("on", "");
+        }
+        this.EVENTS.push(event);
     }
     /**
      * Changes the symbol that separates the attributes inside brackets.
@@ -84,6 +105,21 @@ class HTMLBuilder {
         return txt.value;
     }
     /**
+     * Gets an event according to its name.
+     *
+     * @param name The name of the event we are looking for.
+     * @return {{name: string, type: string, callback: Function, options: any}} The event we are looking for.
+     * @private
+     */
+    _searchForEvent(name) {
+        for (var event of this.EVENTS) {
+            if (name === event.name) {
+                return event;
+            }
+        }
+        return null;
+    }
+    /**
      * Generates a new HTML element from a line (you must use a specific syntax & order).
      *
      * @param {string} line The line to parse.
@@ -102,6 +138,7 @@ class HTMLBuilder {
         var id = matches[3] ? matches[3].replace("#", "") : null;
         var content = matches[4] || null;
         var attributes = matches[5] ? matches[5].split(this.SYMBOL_BETWEEN_ATTRIBUTES) : null;
+        var events = matches[6] ? matches[6].split(";").filter(v => v !== "") : null;
         if (!tagname) {
             console.error('HTMLBuilder: unable to parse a line: "' + line + '"');
             return null;
@@ -137,6 +174,19 @@ class HTMLBuilder {
             element.id = id;
         if (content)
             element.appendChild(document.createTextNode(this._decodeHTMLEntities(content)));
+        if (events) {
+            for (var name of events) {
+                if (/\d/.test(name[0])) {
+                    console.error("HTMLBuilder: invalid syntax for event name '" + name + "'");
+                    continue;
+                }
+                var event = this._searchForEvent(name);
+                if (event) {
+                    // @ts-ignore
+                    element.addEventListener(event.type, event.callback, event.options);
+                }
+            }
+        }
         return element;
     }
     /**

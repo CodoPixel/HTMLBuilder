@@ -29,7 +29,7 @@
             background-color: rgb(40, 40, 40);
             box-sizing: border-box;
             width: 150px;
-            height: 50px;
+            height: 60px;
             padding: 10px;
             transition: background-color 200ms ease-in;
         }
@@ -48,9 +48,24 @@
     <script src="HTMLBuilder.js"></script>
     <script>
         var builder = new HTMLBuilder(document.querySelector("#container"));
-        builder.changeSymbolBetweenAttributes('/');
+        builder.bindEvent({
+            name: 'hoverMe',
+            type: 'mouseover',
+            callback: function (e) {
+                console.log("hooverrr meee!!");
+            }
+        });
+
+        builder.bindEvent({
+            name: 'outOfMe',
+            type: 'mouseout',
+            callback: function (e) {
+                console.log("Out of me !!!");
+            }
+        });
+
         builder.generate(`
-            button(Say (Hello) !)[type=button / data-fakedata=[no-idea1, no-idea2]]
+            button(Hover me (and open the console) !)@hoverMe;outOfMe
         `);
     </script>
 </body>
