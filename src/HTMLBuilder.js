@@ -1,9 +1,30 @@
 // FRENCH="àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ"
+/**
+ * A tool that allows you to generate HTML content from a template in an optimised way.
+ * @class
+ */
 class HTMLBuilder {
+    /**
+     * @constructs HTMLBuilder
+     * @param {HTMLElement} parent The parent in which to put the generated elements.
+     */
     constructor(parent) {
+        /**
+         * The regular expression used to parse a template.
+         * @type {RegExp}
+         * @constant
+         * @private
+         */
         this.REGEX = /(\w{1,})((?:\.[\w\d-]*){0,}){0,}(#[\w\d-]{0,}){0,}(?:\((.*)\)){0,1}(?:\[(.*)\]){0,1}/mi;
         this.parent = parent || document.body;
     }
+    /**
+     * Gets the indentation level of a line.
+     *
+     * @param {string} line The line to parse.
+     * @return {number} The level of indentation.
+     * @private
+     */
     _level(line) {
         var level = 0;
         for (var i = 0; i < line.length; i++) {
@@ -16,6 +37,13 @@ class HTMLBuilder {
         }
         return level;
     }
+    /**
+     * Extracts the different lines of a template in order to analyse them individually.
+     *
+     * @param {string} template The template of the HTML elements.
+     * @return {Array<string>} The lines from a template.
+     * @private
+     */
     _extractLinesFrom(template) {
         var lines = template.trim().split("\n");
         for (var i = 0; i < lines.length; i++) {
@@ -23,6 +51,13 @@ class HTMLBuilder {
         }
         return lines;
     }
+    /**
+     * Generates a new HTML element from a line (you must use a specific syntax & order).
+     *
+     * @param {string} line The line to parse.
+     * @return {HTMLElement} The generated HTML element.
+     * @private
+     */
     _createElementFromLine(line) {
         // Be careful when you use exec() with the global flag
         // If you use a global flag, then set the lastIndex property of the regex to 0 (its initial value).
@@ -69,8 +104,17 @@ class HTMLBuilder {
             element.id = id;
         if (content)
             element.appendChild(content);
+        // TODO: to test => replace appendChild of a TextNode by textContent in order to parse html entities (&amp;)
+        // TODO: https://stackoverflow.com/questions/5796718/html-entity-decode
         return element;
     }
+    /**
+     * Gets the maximum level of indentation.
+     *
+     * @param {Array} children The list of children of a main element from a template.
+     * @return {number} The maximum level of indentation of a list of children.
+     * @private
+     */
     _maxLevel(children) {
         var max = children[0][1];
         for (var child of children) {
@@ -81,12 +125,21 @@ class HTMLBuilder {
         }
         return max;
     }
+    /**
+     * Gets the index of the deepest element. The deepest element is the last child to have the bigger level of indentation.
+     *
+     * @param {Array} children The list of children of a main element from a template.
+     * @return {number} The index of the deepest child.
+     * @private
+     */
     _getIndexOfDeepestElement(children) {
         var max = this._maxLevel(children);
         if (max === 1) {
             // If all the elements are on the closest possible level (1),
-            // then we want to append the first child of the list, not the last one.
-            return 0;
+            // then we want to append the last child of the list.
+            // Remember that we do a prepend() not an append(),
+            // therefore the last one must   go first in order to keep the right order
+            return children.length - 1;
         }
         var lastIndex = 1;
         for (var i = 0; i < children.length; i++) {
@@ -97,6 +150,14 @@ class HTMLBuilder {
         }
         return lastIndex;
     }
+    /**
+     * Gets the index of the nearest element of the deepest one. This child is the parent element of the deepest one.
+     *
+     * @param indexOfDeepest The index of the deepest element.
+     * @param children The list of children of a main element from a template.
+     * @return {number} The index of the nearest child.
+     * @private
+     */
     _getIndexOfNearestParentElementOf(indexOfDeepest, children) {
         var deepest = children[indexOfDeepest][1];
         var lastIndex = null;
@@ -108,6 +169,12 @@ class HTMLBuilder {
         }
         return lastIndex;
     }
+    /**
+     * Reproduces a template in full HTML structure and adds it to the parent as a child (there can be several parents).
+     *
+     * @param {string} template The template of your HTML structure.
+     * @public
+     */
     generate(template) {
         // We read all the lines in order to identify the main HTML elements,
         // i.e. those without indentation
@@ -141,9 +208,10 @@ class HTMLBuilder {
             while (childrenElements.length > 0) {
                 var indexOfDeepest = this._getIndexOfDeepestElement(childrenElements);
                 var indexOfNearestParent = this._getIndexOfNearestParentElementOf(indexOfDeepest, childrenElements);
-                indexOfNearestParent
-                    ? childrenElements[indexOfNearestParent][0].appendChild(childrenElements[indexOfDeepest][0])
-                    : mainElement.appendChild(childrenElements[indexOfDeepest][0]);
+                // Don't forget to specify "!== null" because indexOfNearestParent can be 0 (= false)
+                indexOfNearestParent !== null
+                    ? childrenElements[indexOfNearestParent][0].prepend(childrenElements[indexOfDeepest][0])
+                    : mainElement.prepend(childrenElements[indexOfDeepest][0]);
                 childrenElements.splice(indexOfDeepest, 1);
             }
             this.parent.appendChild(mainElement);

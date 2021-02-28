@@ -5,15 +5,18 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>HTMLBuilder example</title>
 </head>
 
 <body>
 
+    <div id="container">
+
+    </div>
+
     <script src="HTMLBuilder.js"></script>
     <script>
-        var builder = new HTMLBuilder();
-        // this doesn't work properly, I still have a bug to identifiy. However it's 1 a.m so...
+        var builder = new HTMLBuilder(document.querySelector("#container"));
         builder.generate(`
             div.terminal
                 >div.terminal-bar
