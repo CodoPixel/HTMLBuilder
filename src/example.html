@@ -6,43 +6,51 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HTMLBuilder example</title>
+
+    <style>
+        * {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        button {
+            outline: none;
+            border: none;
+            cursor: pointer;
+            color: #fff;
+            background-color: rgb(40, 40, 40);
+            box-sizing: border-box;
+            width: 150px;
+            height: 50px;
+            padding: 10px;
+            transition: background-color 200ms ease-in;
+        }
+
+        button:hover {
+            background-color: rgb(0, 0, 0);
+        }
+    </style>
 </head>
 
 <body>
 
     <div id="container">
-
     </div>
 
     <script src="HTMLBuilder.js"></script>
     <script>
         var builder = new HTMLBuilder(document.querySelector("#container"));
         builder.generate(`
-            div.terminal
-                >div.terminal-bar
-                    >>div.terminal-container-title
-                        >>>span(Web Terminal)
-                    >>div.terminal-main-buttons
-                        >>>button(&#150;)
-                        >>>button(&#8597;)
-                        >>>button(X)
-                >div.terminal-body
-                    >>div.terminal-intro
-                        >>>span(Titre)
-                        >>>br
-                        >>>span(Desc)
-                    >>div.test
-                        >>>span(Yo)
+            button(Say Hello !)[type=button]
         `);
-        // this works fine:
-        // builder.generate(`
-        //     div.parent1.parent2
-        //         >br
-        //         >strong
-        //         >div.container
-        //             >>span
-        //         >mark
-        // `);
     </script>
 </body>
 

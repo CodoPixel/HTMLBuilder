@@ -15,7 +15,7 @@ class HTMLBuilder {
          * @constant
          * @private
          */
-        this.REGEX = /(\w{1,})((?:\.[\w\d-]*){0,}){0,}(#[\w\d-]{0,}){0,}(?:\((.*)\)){0,1}(?:\[(.*)\]){0,1}/mi;
+        this.REGEX = /(\w{1,})((?:\.[\w-]*){0,}){0,}(#[\w-]{0,}){0,}(?:\((.[^)]*)\)){0,1}(?:\[(.*)\]){0,1}/mi;
         this.parent = parent || document.body;
     }
     /**
@@ -52,6 +52,19 @@ class HTMLBuilder {
         return lines;
     }
     /**
+     * Decodes HTML entities like `&amp;` etc.
+     *
+     * @param {string} content The content to decode.
+     * @return {string} The decoded content.
+     * @private
+     * {@link https://stackoverflow.com/questions/7394748/whats-the-right-way-to-decode-a-string-that-has-special-html-entities-in-it/7394787#7394787}
+     */
+    _decodeHTMLEntities(content) {
+        var txt = document.createElement("textarea");
+        txt.innerHTML = content;
+        return txt.value;
+    }
+    /**
      * Generates a new HTML element from a line (you must use a specific syntax & order).
      *
      * @param {string} line The line to parse.
@@ -68,8 +81,8 @@ class HTMLBuilder {
         var tagname = matches[1] || null;
         var classes = matches[2] ? matches[2].split(".").filter(v => v !== "") : null;
         var id = matches[3] ? matches[3].replace("#", "") : null;
-        var content = matches[4] ? document.createTextNode(matches[4]) : null;
-        var attributes = matches[5] ? matches[2].split(",").filter(v => v.trim()) : null;
+        var content = matches[4] || null;
+        var attributes = matches[5] ? matches[5].split(",") : null;
         if (!tagname) {
             console.error('HTMLBuilder: unable to parse a line: "' + line + '"');
             return null;
@@ -90,6 +103,7 @@ class HTMLBuilder {
                     console.error("HTMLBuilder: invalid syntax for attribute name '" + c + "'");
                     continue;
                 }
+                attr = attr.trim();
                 if (attr.indexOf('=') !== -1) {
                     var name = attr.split('=')[0];
                     var value = attr.split('=')[1];
@@ -103,9 +117,7 @@ class HTMLBuilder {
         if (id)
             element.id = id;
         if (content)
-            element.appendChild(content);
-        // TODO: to test => replace appendChild of a TextNode by textContent in order to parse html entities (&amp;)
-        // TODO: https://stackoverflow.com/questions/5796718/html-entity-decode
+            element.appendChild(document.createTextNode(this._decodeHTMLEntities(content)));
         return element;
     }
     /**
@@ -176,6 +188,8 @@ class HTMLBuilder {
      * @public
      */
     generate(template) {
+        if (template.trim().length === 0)
+            return;
         // We read all the lines in order to identify the main HTML elements,
         // i.e. those without indentation
         var lines = this._extractLinesFrom(template);
@@ -186,25 +200,30 @@ class HTMLBuilder {
             var line = lines[i];
             var level = this._level(line);
             if (level === 0) {
-                mainLines.push(line);
+                mainLines.push([line, i]); // the line & its index among all the lines
             }
         }
         // We read the next lines and we create an element that we save
         // in a list of children, for each main element.
         for (i = 0; i < mainLines.length; i++) {
             var childrenElements = [];
-            var mainLine = mainLines[i];
+            var mainLine = mainLines[i][0];
+            var mainLevel = mainLines[i][1];
+            var nextMainLevel = mainLines[i + 1] ? mainLines[i + 1][1] : lines.length;
             var mainElement = this._createElementFromLine(mainLine);
-            for (k = i + 1; k < lines.length; k++) {
+            // starts at the position of the main line
+            // ends at the position of the next main line
+            // in order to get only its children
+            for (k = mainLevel + 1; k < nextMainLevel; k++) {
                 var line = lines[k];
-                if (line === mainLine) {
-                    break;
-                }
-                else {
-                    var child = this._createElementFromLine(line);
-                    childrenElements.push([child, this._level(line)]);
-                }
+                var child = this._createElementFromLine(line);
+                childrenElements.push([child, this._level(line)]);
             }
+            // We search for the deepest element (i.e. the one with the highest level of indentation)
+            // This deepest has as parent the nearest element to have a level of indentation equals to "child's level - 1"
+            // We call it the "nearest parent element".
+            // Then, because we read the list of children from bottom to top, we prepend() in order to keep the right order.
+            // Indeed, append() would reverse the right order.
             while (childrenElements.length > 0) {
                 var indexOfDeepest = this._getIndexOfDeepestElement(childrenElements);
                 var indexOfNearestParent = this._getIndexOfNearestParentElementOf(indexOfDeepest, childrenElements);
