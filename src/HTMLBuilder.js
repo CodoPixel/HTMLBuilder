@@ -15,7 +15,14 @@ class HTMLBuilder {
          * @constant
          * @private
          */
-        this.REGEX = /(\w{1,})((?:\.[\w-]*){0,}){0,}(#[\w-]{0,}){0,}(?:\((.[^)]*)\)){0,1}(?:\[(.*)\]){0,1}/mi;
+        this.REGEX = /(\w{1,})((?:\.[\w-]*){0,}){0,}(#[\w-]{0,}){0,}(?:\((.*)\)){0,1}(?:\[(.*)\]){0,1}/mi;
+        /**
+         * The symbol uses to separate different attributes.
+         * @type {string}
+         * @constanst
+         * @private
+         */
+        this.SYMBOL_BETWEEN_ATTRIBUTES = ";";
         this.parent = parent || document.body;
     }
     /**
@@ -82,7 +89,7 @@ class HTMLBuilder {
         var classes = matches[2] ? matches[2].split(".").filter(v => v !== "") : null;
         var id = matches[3] ? matches[3].replace("#", "") : null;
         var content = matches[4] || null;
-        var attributes = matches[5] ? matches[5].split(",") : null;
+        var attributes = matches[5] ? matches[5].split(this.SYMBOL_BETWEEN_ATTRIBUTES) : null;
         if (!tagname) {
             console.error('HTMLBuilder: unable to parse a line: "' + line + '"');
             return null;
@@ -150,7 +157,7 @@ class HTMLBuilder {
             // If all the elements are on the closest possible level (1),
             // then we want to append the last child of the list.
             // Remember that we do a prepend() not an append(),
-            // therefore the last one must   go first in order to keep the right order
+            // therefore the last one must go first in order to keep the right order
             return children.length - 1;
         }
         var lastIndex = 1;
@@ -182,7 +189,7 @@ class HTMLBuilder {
         return lastIndex;
     }
     /**
-     * Reproduces a template in full HTML structure and adds it to the parent as a child (there can be several parents).
+     * Reproduces a template in full HTML structure and adds it to the parent as a child (there can be several children).
      *
      * @param {string} template The template of your HTML structure.
      * @public

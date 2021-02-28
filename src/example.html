@@ -49,7 +49,7 @@
     <script>
         var builder = new HTMLBuilder(document.querySelector("#container"));
         builder.generate(`
-            button(Say Hello !)[type=button]
+            button(Say (Hello) !)[type=button; data-fakedata=[no-idea1, no-idea2]]
         `);
     </script>
 </body>

@@ -11,7 +11,7 @@ class HTMLBuilder {
      * @constant
      * @private
      */
-    private REGEX: RegExp = /(\w{1,})((?:\.[\w-]*){0,}){0,}(#[\w-]{0,}){0,}(?:\((.[^)]*)\)){0,1}(?:\[(.*)\]){0,1}/mi;
+    private REGEX: RegExp = /(\w{1,})((?:\.[\w-]*){0,}){0,}(#[\w-]{0,}){0,}(?:\((.*)\)){0,1}(?:\[(.*)\]){0,1}/mi;
     
     /**
      * The parent element in which to put the generated elements from the template.
@@ -19,6 +19,14 @@ class HTMLBuilder {
      * @private
      */
     private parent: HTMLElement;
+
+    /**
+     * The symbol uses to separate different attributes.
+     * @type {string}
+     * @constanst
+     * @private
+     */
+    private SYMBOL_BETWEEN_ATTRIBUTES: string = ";";
 
     /**
      * @constructs HTMLBuilder
@@ -99,7 +107,7 @@ class HTMLBuilder {
         var classes: string[] = matches[2] ? (matches[2].split(".") as string[]).filter(v => v !== "") : null;
         var id: string = matches[3] ? matches[3].replace("#", "") : null;
         var content: string = matches[4] || null;
-        var attributes: string[] = matches[5] ? matches[5].split(",") : null;
+        var attributes: string[] = matches[5] ? matches[5].split(this.SYMBOL_BETWEEN_ATTRIBUTES) : null;
 
         if (!tagname) {
             console.error('HTMLBuilder: unable to parse a line: "' + line + '"');
@@ -173,7 +181,7 @@ class HTMLBuilder {
             // If all the elements are on the closest possible level (1),
             // then we want to append the last child of the list.
             // Remember that we do a prepend() not an append(),
-            // therefore the last one must   go first in order to keep the right order
+            // therefore the last one must go first in order to keep the right order
             return children.length - 1;
         }
 
@@ -209,7 +217,7 @@ class HTMLBuilder {
     }
 
     /**
-     * Reproduces a template in full HTML structure and adds it to the parent as a child (there can be several parents).
+     * Reproduces a template in full HTML structure and adds it to the parent as a child (there can be several children).
      * 
      * @param {string} template The template of your HTML structure.
      * @public
