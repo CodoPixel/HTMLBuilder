@@ -47,7 +47,8 @@
 
     <script src="HTMLBuilder.js"></script>
     <script>
-        var builder = new HTMLBuilder(document.querySelector("#container"));
+        var builder = new HTMLBuilder();
+        builder.setParent(document.querySelector("#container"));
         builder.bindEvent({
             name: 'hoverMe',
             type: 'mouseover',

@@ -35,6 +35,7 @@ class HTMLBuilder {
     private SYMBOL_BETWEEN_ATTRIBUTES: string = ";";
 
     /**
+     * The list of all the events.
      * @private 
      */
     private EVENTS: Listener[] = [];
@@ -48,9 +49,21 @@ class HTMLBuilder {
     }
 
     /**
+     * Changes the parent element.
+     * 
+     * @param parent The new parent element in which to put the generated elements.
+     * @public
+     */
+    public setParent(parent: HTMLElement): void
+    {
+        this.parent = parent;
+    }
+
+    /**
      * Registers an event to use in a template. Those events are available for all the templates.
      * 
-     * @param {{name: string, type: string, callback: Function, options: any}} event The event to register. 
+     * @param {{name: string, type: string, callback: Function, options: any}} event The event to register.
+     * @public
      */
     public bindEvent(event: Listener): void
     {
@@ -243,7 +256,7 @@ class HTMLBuilder {
     }
 
     /**
-     * Gets the index of the deepest element. The deepest element is the last child to have the bigger level of indentation.
+     * Gets the index of the deepest element. The deepest element is the last child to have the highest level of indentation.
      * 
      * @param {Array} children The list of children of a main element from a template.
      * @return {number} The index of the deepest child.
@@ -317,7 +330,7 @@ class HTMLBuilder {
             }
         }
 
-        // We read the next lines and we create an element that we save
+        // We read the next lines and we create an array [HTMLElement, its level] that we save
         // in a list of children, for each main element.
 
         for (i = 0; i < mainLines.length; i++) {
@@ -337,7 +350,7 @@ class HTMLBuilder {
             }
 
             // We search for the deepest element (i.e. the one with the highest level of indentation)
-            // This deepest has as parent the nearest element to have a level of indentation equals to "child's level - 1"
+            // This deepest has as parent the nearest element which has a level of indentation equal to "child's level - 1"
             // We call it the "nearest parent element".
             // Then, because we read the list of children from bottom to top, we prepend() in order to keep the right order.
             // Indeed, append() would reverse the right order.
