@@ -69,18 +69,9 @@ class HTMLBuilder {
 	 * @public
 	 */
 	public bindEvent(event: Listener): void {
-		if (!event.name)
-			throw new Error(
-				"bindEvent(): cannot bind an event without a name."
-			);
-		if (!event.type)
-			throw new Error(
-				"bindEvent(): cannot bind an event without a precise type."
-			);
-		if (!event.callback)
-			throw new Error(
-				"bindEvent(): cannot bind an event without a callback function."
-			);
+		if (!event.name) throw new Error("bindEvent(): cannot bind an event without a name.");
+		if (!event.type) throw new Error("bindEvent(): cannot bind an event without a precise type.");
+		if (!event.callback) throw new Error("bindEvent(): cannot bind an event without a callback function.");
 		if (event.name.startsWith("on")) {
 			event.name = event.name.replace("on", "");
 		}
@@ -156,7 +147,7 @@ class HTMLBuilder {
 	 * @return {{name: string, type: string, callback: Function, options: any}} The event we are looking for.
 	 * @private
 	 */
-	private _searchForEvent(name: string): Listener {
+	private _searchForEvent(name: string): Listener | null {
 		for (var event of this.EVENTS) {
 			if (name === event.name) {
 				return event;
@@ -171,6 +162,7 @@ class HTMLBuilder {
 	 * @param {string} line The line to parse.
 	 * @return {HTMLElement} The generated HTML element.
 	 * @private
+	 * @throws If there is no tagname.
 	 */
 	private _createElementFromLine(line: string): HTMLElement {
 		// Be careful when you use exec() with the global flag
@@ -180,33 +172,22 @@ class HTMLBuilder {
 		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/exec#finding_successive_matches
 		var matches = this.REGEX.exec(line) || [];
 
-		var tagname: string = matches[1] || null;
-		var classes: string[] = matches[2]
-			? (matches[2].split(".") as string[]).filter((v) => v !== "")
-			: null;
-		var id: string = matches[3] ? matches[3].replace("#", "") : null;
-		var content: string = matches[4] || null;
-		var attributes: string[] = matches[5]
-			? matches[5].split(this.SYMBOL_BETWEEN_ATTRIBUTES)
-			: null;
-		var events: string[] = matches[6]
-			? (matches[6].split(";") as string[]).filter((v) => v !== "")
-			: null;
+		var tagname: string | null = matches[1] || null;
+		var classes: string[] | null = matches[2] ? (matches[2].split(".") as string[]).filter((v) => v !== "") : null;
+		var id: string | null = matches[3] ? matches[3].replace("#", "") : null;
+		var content: string | null = matches[4] || null;
+		var attributes: string[] | null = matches[5] ? matches[5].split(this.SYMBOL_BETWEEN_ATTRIBUTES) : null;
+		var events: string[] | null = matches[6] ? (matches[6].split(";") as string[]).filter((v) => v !== "") : null;
 
 		if (!tagname) {
-			console.error(
-				'HTMLBuilder: unable to parse a line: "' + line + '"'
-			);
-			return null;
+			throw new Error('HTMLBuilder: unable to parse a line: "' + line + '"');
 		}
 
 		var element: HTMLElement = document.createElement(tagname);
 		if (classes) {
 			for (var c of classes) {
 				if (/\d/.test(c[0])) {
-					console.error(
-						"HTMLBuilder: invalid syntax for class name '" + c + "'"
-					);
+					console.error("HTMLBuilder: invalid syntax for class name '" + c + "'");
 					continue;
 				}
 				element.classList.add(c);
@@ -215,11 +196,7 @@ class HTMLBuilder {
 		if (attributes) {
 			for (var attr of attributes) {
 				if (/\d/.test(attr[0])) {
-					console.error(
-						"HTMLBuilder: invalid syntax for attribute name '" +
-							c +
-							"'"
-					);
+					console.error("HTMLBuilder: invalid syntax for attribute name '" + attr + "'");
 					continue;
 				}
 
@@ -235,30 +212,19 @@ class HTMLBuilder {
 		}
 
 		if (id) element.id = id;
-		if (content)
-			element.appendChild(
-				document.createTextNode(this._decodeHTMLEntities(content))
-			);
+		if (content) element.appendChild(document.createTextNode(this._decodeHTMLEntities(content)));
 
 		if (events) {
 			for (var name of events) {
 				if (/\d/.test(name[0])) {
-					console.error(
-						"HTMLBuilder: invalid syntax for event name '" +
-							name +
-							"'"
-					);
+					console.error("HTMLBuilder: invalid syntax for event name '" + name + "'");
 					continue;
 				}
 
-				var event: Listener = this._searchForEvent(name);
+				var event: Listener | null = this._searchForEvent(name);
 				if (event) {
 					// @ts-ignore
-					element.addEventListener(
-						event.type,
-						event.callback,
-						event.options
-					);
+					element.addEventListener(event.type, event.callback, event.options);
 				}
 			}
 		}
@@ -291,9 +257,7 @@ class HTMLBuilder {
 	 * @return {number} The index of the deepest child.
 	 * @private
 	 */
-	private _getIndexOfDeepestElement(
-		children: [HTMLElement, number][]
-	): number {
+	private _getIndexOfDeepestElement(children: [HTMLElement, number][]): number {
 		var max: number = this._maxLevel(children);
 		if (max === 1) {
 			// If all the elements are on the closest possible level (1),
@@ -324,9 +288,9 @@ class HTMLBuilder {
 	private _getIndexOfNearestParentElementOf(
 		indexOfDeepest: number,
 		children: [HTMLElement, number][]
-	): number {
+	): number | null {
 		var deepest: number = children[indexOfDeepest][1];
-		var lastIndex: number = null;
+		var lastIndex: number | null = null;
 		for (var i = 0; i < indexOfDeepest; i++) {
 			var level: number = children[i][1];
 			if (level === deepest - 1) {
@@ -368,12 +332,8 @@ class HTMLBuilder {
 			var childrenElements: [HTMLElement, number][] = [];
 			var mainLine: string = mainLines[i][0];
 			var mainLevel: number = mainLines[i][1];
-			var nextMainLevel: number = mainLines[i + 1]
-				? mainLines[i + 1][1]
-				: lines.length;
-			var mainElement: HTMLElement = this._createElementFromLine(
-				mainLine
-			);
+			var nextMainLevel: number = mainLines[i + 1] ? mainLines[i + 1][1] : lines.length;
+			var mainElement: HTMLElement = this._createElementFromLine(mainLine);
 
 			// starts at the position of the main line
 			// ends at the position of the next main line
@@ -391,19 +351,15 @@ class HTMLBuilder {
 			// Indeed, append() would reverse the right order.
 
 			while (childrenElements.length > 0) {
-				var indexOfDeepest: number = this._getIndexOfDeepestElement(
-					childrenElements
-				);
-				var indexOfNearestParent: number = this._getIndexOfNearestParentElementOf(
+				var indexOfDeepest: number = this._getIndexOfDeepestElement(childrenElements);
+				var indexOfNearestParent: number | null = this._getIndexOfNearestParentElementOf(
 					indexOfDeepest,
 					childrenElements
 				);
 
 				// Don't forget to specify "!== null" because indexOfNearestParent can be 0 (= false)
 				indexOfNearestParent !== null
-					? childrenElements[indexOfNearestParent][0].prepend(
-							childrenElements[indexOfDeepest][0]
-					  )
+					? childrenElements[indexOfNearestParent][0].prepend(childrenElements[indexOfDeepest][0])
 					: mainElement.prepend(childrenElements[indexOfDeepest][0]);
 
 				childrenElements.splice(indexOfDeepest, 1);
