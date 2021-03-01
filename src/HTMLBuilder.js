@@ -145,11 +145,17 @@ class HTMLBuilder {
         // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/exec#finding_successive_matches
         var matches = this.REGEX.exec(line) || [];
         var tagname = matches[1] || null;
-        var classes = matches[2] ? matches[2].split(".").filter(v => v !== "") : null;
+        var classes = matches[2]
+            ? matches[2].split(".").filter((v) => v !== "")
+            : null;
         var id = matches[3] ? matches[3].replace("#", "") : null;
         var content = matches[4] || null;
-        var attributes = matches[5] ? matches[5].split(this.SYMBOL_BETWEEN_ATTRIBUTES) : null;
-        var events = matches[6] ? matches[6].split(";").filter(v => v !== "") : null;
+        var attributes = matches[5]
+            ? matches[5].split(this.SYMBOL_BETWEEN_ATTRIBUTES)
+            : null;
+        var events = matches[6]
+            ? matches[6].split(";").filter((v) => v !== "")
+            : null;
         if (!tagname) {
             console.error('HTMLBuilder: unable to parse a line: "' + line + '"');
             return null;
@@ -167,17 +173,19 @@ class HTMLBuilder {
         if (attributes) {
             for (var attr of attributes) {
                 if (/\d/.test(attr[0])) {
-                    console.error("HTMLBuilder: invalid syntax for attribute name '" + c + "'");
+                    console.error("HTMLBuilder: invalid syntax for attribute name '" +
+                        c +
+                        "'");
                     continue;
                 }
                 attr = attr.trim();
-                if (attr.indexOf('=') !== -1) {
-                    var name = attr.split('=')[0];
-                    var value = attr.split('=')[1];
+                if (attr.indexOf("=") !== -1) {
+                    var name = attr.split("=")[0];
+                    var value = attr.split("=")[1];
                     element.setAttribute(name, value);
                 }
                 else {
-                    element.setAttribute(attr, '');
+                    element.setAttribute(attr, "");
                 }
             }
         }
@@ -188,7 +196,9 @@ class HTMLBuilder {
         if (events) {
             for (var name of events) {
                 if (/\d/.test(name[0])) {
-                    console.error("HTMLBuilder: invalid syntax for event name '" + name + "'");
+                    console.error("HTMLBuilder: invalid syntax for event name '" +
+                        name +
+                        "'");
                     continue;
                 }
                 var event = this._searchForEvent(name);
@@ -289,7 +299,9 @@ class HTMLBuilder {
             var childrenElements = [];
             var mainLine = mainLines[i][0];
             var mainLevel = mainLines[i][1];
-            var nextMainLevel = mainLines[i + 1] ? mainLines[i + 1][1] : lines.length;
+            var nextMainLevel = mainLines[i + 1]
+                ? mainLines[i + 1][1]
+                : lines.length;
             var mainElement = this._createElementFromLine(mainLine);
             // starts at the position of the main line
             // ends at the position of the next main line
@@ -317,3 +329,5 @@ class HTMLBuilder {
         }
     }
 }
+if (!("HTMLBuilder" in window))
+    window.HTMLBuilder = HTMLBuilder;
