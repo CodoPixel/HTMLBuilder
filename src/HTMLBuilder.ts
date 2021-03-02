@@ -1,9 +1,5 @@
 // FRENCH="àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ"
 
-declare interface Window {
-	HTMLBuilder: any;
-}
-
 interface Listener {
 	name: string;
 	type: string;
@@ -369,5 +365,3 @@ class HTMLBuilder {
 		}
 	}
 }
-
-if (!("HTMLBuilder" in window)) window.HTMLBuilder = HTMLBuilder;

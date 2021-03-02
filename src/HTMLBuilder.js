@@ -318,5 +318,3 @@ class HTMLBuilder {
         }
     }
 }
-if (!("HTMLBuilder" in window))
-    window.HTMLBuilder = HTMLBuilder;
