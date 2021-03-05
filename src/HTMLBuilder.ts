@@ -3,8 +3,8 @@
 interface Listener {
 	name: string;
 	type: string;
-	callback: Function;
-	options: any;
+	callback: (e: any) => void;
+	options?: any;
 }
 
 /**
