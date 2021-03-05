@@ -93,6 +93,7 @@ class HTMLBuilder {
 	 * @param {string} template The template to indent.
 	 * @param {number} indentation The level of indentation (by default 1).
 	 * @returns {string} The new template.
+	 * @since 1.0.3
 	 */
 	public indentTemplate(template: string, indentation: number = 1): string {
 		var newTemplate = "";

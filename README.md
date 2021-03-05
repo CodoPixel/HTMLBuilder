@@ -208,6 +208,15 @@ builder.generate(`
 `);
 ```
 
+Since 1.0.3, there is a brand new method (I needed it actually):
+
+```javascript
+builder.indentTemplate(`>button[type=button]`, 2);
+// adds an indentation level of 2, so there result will be a button with an indentation level of 3
+// `>>>button[type=button]`
+// This method can be used with several lines: each line will be modified.
+```
+
 All of the other methods are private (they start with `_`). Ignore them.
 
 ## Technical part: the algorithm

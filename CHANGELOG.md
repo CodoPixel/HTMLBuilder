@@ -1,3 +1,7 @@
+# [1.0.3] - March 5, 2021
+
+Add method indentTemplate() in order to concatenate templates.
+
 # [1.0.0] - March 1st, 2021
 
 Initial release
