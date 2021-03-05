@@ -81,11 +81,27 @@ class HTMLBuilder {
 	 * @public
 	 * @example `
 	 *      changeSymbolBetweenAttributes('/')
-	 *      => [attr1=true / attr2=voila]
+	 *      => [attr1=et / attr2=voilà]
 	 * `
 	 */
 	public changeSymbolBetweenAttributes(symbol: string): void {
 		this.SYMBOL_BETWEEN_ATTRIBUTES = symbol;
+	}
+
+	/**
+	 * Indents a template in order to concatenate it with another one.
+	 * @param {string} template The template to indent.
+	 * @param {number} indentation The level of indentation (by default 1).
+	 * @returns {string} The new template.
+	 */
+	public indentTemplate(template: string, indentation: number = 1): string {
+		var newTemplate = "";
+		var lines = this._extractLinesFrom(template);
+		for (var line of lines) {
+			newTemplate += ">".repeat(indentation) + line + "\n"; // \n to add more lines
+		}
+
+		return newTemplate.trim();
 	}
 
 	/**
