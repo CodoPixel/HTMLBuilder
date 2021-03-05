@@ -18,7 +18,7 @@ class HTMLBuilder {
 	 * @constant
 	 * @private
 	 */
-	private REGEX: RegExp = /(\w{1,})((?:\.[\w-]*){0,}){0,}(#[\w-]{0,}){0,1}(?:\((.*)\)){0,1}(?:\[(.*)\]){0,1}(?:\@([\w;]*)){0,}/;
+	private REGEX: RegExp = /(\w+)((?:\.[\w-]*)*)*(#[\w-]*)?(?:\((.*)\))?(?:\[(.*)\])?(?:\@([\w;]*))*/;
 
 	/**
 	 * The parent element in which to put the generated elements from the template.

@@ -230,7 +230,7 @@ How HTMLBuilder builds elements from a template? There are several steps:
 - We generate the HTML elements thanks that monster:
 
 ```javascript
-/(\w{1,})((?:\.[\w-]*){0,}){0,}(#[\w-]{0,}){0,1}(?:\((.*)\)){0,1}(?:\[(.*)\]){0,1}(?:\@([\w;]*)){0,}/;
+/(\w+)((?:\.[\w-]*)*)*(#[\w-]*)?(?:\((.*)\))?(?:\[(.*)\])?(?:\@([\w;]*))*/
 ```
 
 - We now have a list of children for each main element. We save the indentation level of each child. The challenge here is to identify which element is the parent of which child. Therefore, we need to start with the deepest element and work our way up to the element closest to the parent.
