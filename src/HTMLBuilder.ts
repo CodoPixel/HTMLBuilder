@@ -18,7 +18,7 @@ class HTMLBuilder {
 	 * @constant
 	 * @private
 	 */
-	private REGEX: RegExp = /(\w+)((?:\.[\w-]*)*)*(#[\w-]*)?(?:\((.*)\))?(?:\[(.*)\])?(?:\@([\w;]*))*/;
+	private REGEX: RegExp = /(\w+)((?:\.[\w-]*)*)*(#[\w-]*)?(?:\((.*)\))?(?:\[(.*)\])?(?:\@([\w;-]*))*/;
 
 	/**
 	 * The parent element in which to put the generated elements from the template.
@@ -50,7 +50,6 @@ class HTMLBuilder {
 
 	/**
 	 * Changes the parent element.
-	 *
 	 * @param parent The new parent element in which to put the generated elements.
 	 * @public
 	 */
@@ -60,7 +59,6 @@ class HTMLBuilder {
 
 	/**
 	 * Registers an event to use in a template. Those events are available for all the templates.
-	 *
 	 * @param {{name: string, type: string, callback: Function, options: any}} event The event to register.
 	 * @public
 	 */
@@ -75,8 +73,16 @@ class HTMLBuilder {
 	}
 
 	/**
+	 * Clears all the events.
+	 * @public
+	 * @since 1.0.6
+	 */
+	public clearEvents(): void {
+		this.EVENTS = [];
+	}
+
+	/**
 	 * Changes the symbol that separates the attributes inside brackets.
-	 *
 	 * @param {string} symbol The new symbol.
 	 * @public
 	 * @example `
@@ -99,7 +105,7 @@ class HTMLBuilder {
 		var newTemplate = "";
 		var lines = this._extractLinesFrom(template);
 		for (var line of lines) {
-			newTemplate += ">".repeat(indentation) + line + "\n"; // \n to add more lines
+			newTemplate += ">".repeat(indentation) + line.trim() + "\n"; // \n to add more lines
 		}
 
 		return newTemplate.trim();
@@ -107,7 +113,6 @@ class HTMLBuilder {
 
 	/**
 	 * Gets the indentation level of a line.
-	 *
 	 * @param {string} line The line to parse.
 	 * @return {number} The level of indentation.
 	 * @private
@@ -126,7 +131,6 @@ class HTMLBuilder {
 
 	/**
 	 * Extracts the different lines of a template in order to analyse them individually.
-	 *
 	 * @param {string} template The template of the HTML elements.
 	 * @return {Array<string>} The lines from a template.
 	 * @private
@@ -135,13 +139,15 @@ class HTMLBuilder {
 		var lines = template.trim().split("\n");
 		for (var i = 0; i < lines.length; i++) {
 			lines[i] = lines[i].trim();
+			if (lines[i].length == 0) {
+				lines.splice(i, 1);
+			}
 		}
 		return lines;
 	}
 
 	/**
 	 * Decodes HTML entities like `&amp;` etc.
-	 *
 	 * @param {string} content The content to decode.
 	 * @return {string} The decoded content.
 	 * @private
@@ -155,7 +161,6 @@ class HTMLBuilder {
 
 	/**
 	 * Gets an event according to its name.
-	 *
 	 * @param name The name of the event we are looking for.
 	 * @return {{name: string, type: string, callback: Function, options: any}} The event we are looking for.
 	 * @private
@@ -171,7 +176,6 @@ class HTMLBuilder {
 
 	/**
 	 * Generates a new HTML element from a line (you must use a specific syntax & order).
-	 *
 	 * @param {string} line The line to parse.
 	 * @return {HTMLElement} The generated HTML element.
 	 * @private
@@ -247,7 +251,6 @@ class HTMLBuilder {
 
 	/**
 	 * Gets the maximum level of indentation.
-	 *
 	 * @param {Array} children The list of children of a main element from a template.
 	 * @return {number} The maximum level of indentation of a list of children.
 	 * @private
@@ -265,7 +268,6 @@ class HTMLBuilder {
 
 	/**
 	 * Gets the index of the deepest element. The deepest element is the last child to have the highest level of indentation.
-	 *
 	 * @param {Array} children The list of children of a main element from a template.
 	 * @return {number} The index of the deepest child.
 	 * @private
@@ -292,7 +294,6 @@ class HTMLBuilder {
 
 	/**
 	 * Gets the index of the nearest element of the deepest one. This child is the parent element of the deepest one.
-	 *
 	 * @param indexOfDeepest The index of the deepest element.
 	 * @param children The list of children of a main element from a template.
 	 * @return {number} The index of the nearest child.
@@ -315,7 +316,6 @@ class HTMLBuilder {
 
 	/**
 	 * Reproduces a template in full HTML structure and adds it to the parent as a child (there can be several children).
-	 *
 	 * @param {string} template The template of your HTML structure.
 	 * @public
 	 */

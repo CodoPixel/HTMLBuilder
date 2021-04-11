@@ -1,3 +1,7 @@
+# [1.0.6] - April 11, 2021
+
++ Bug fixes.
+
 # [1.0.5] - March 6, 2021
 
 + Minor fixes.
